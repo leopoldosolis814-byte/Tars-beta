@@ -2,209 +2,135 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Lady TARS AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>TARS-1</title>
 
 <style>
 body {
   margin: 0;
-  background: black;
-  overflow: hidden;
-  font-family: monospace;
+  background: #05080f;
+  font-family: sans-serif;
+  display: flex;
+  justify-content: center;
 }
 
-.container {
+/* CONTENEDOR */
+.wrapper {
+  width: 100%;
+  max-width: 420px;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+/* TITULO */
+.title {
+  color: #dff;
+  font-size: clamp(24px, 6vw, 38px);
+  letter-spacing: 4px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* CARD */
+.card {
   position: relative;
-  width: 100vw;
-  height: 100vh;
-  cursor: pointer;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 2px solid rgba(0,255,255,0.3);
+  box-shadow: 0 0 25px rgba(0,255,255,0.2);
 }
 
+/* VIDEO */
 video {
   width: 100%;
-  height: 100%;
+  height: auto;
+  display: block;
   object-fit: cover;
-  filter: contrast(1.2) brightness(1.1);
+}
+
+/* SCANLINES */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.06) 0px,
+    rgba(255,255,255,0.06) 1px,
+    transparent 2px,
+    transparent 4px
+  );
+  pointer-events: none;
+  animation: scanMove 5s linear infinite;
+}
+
+@keyframes scanMove {
+  from { transform: translateY(0); }
+  to { transform: translateY(12px); }
 }
 
 /* HUD */
-.overlay {
+.hud {
   position: absolute;
-  width: 100%;
-  height: 100%;
+  bottom: 12px;
+  left: 12px;
+  background: rgba(0,0,0,0.6);
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  color: #00ffe1;
+  backdrop-filter: blur(6px);
 }
 
-/* scanline */
-.scan {
-  position: absolute;
-  width: 100%;
-  height: 2px;
-  background: rgba(0,255,255,0.4);
-  animation: scan 3s linear infinite;
+/* PANEL */
+.panel {
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(0,255,255,0.2);
+  color: #0ff;
 }
 
-@keyframes scan {
-  0% { top: 0; }
-  100% { top: 100%; }
-}
-
-/* glitch */
-.glitch {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,255,255,0.08);
-  opacity: 0;
-}
-
-.glitch.active {
-  animation: glitch 0.2s;
-}
-
-@keyframes glitch {
-  50% { opacity: 1; }
-}
-
-/* texto */
-.text {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  color: cyan;
-  font-size: 14px;
-  letter-spacing: 2px;
+/* RESPONSIVE EXTRA */
+@media (max-width: 400px) {
+  .wrapper {
+    padding: 10px;
+  }
 }
 </style>
+
 </head>
 
 <body>
 
-<div class="container" id="container">
+<div class="wrapper">
 
-  <video autoplay muted loop playsinline>
-    <source src="https://res.cloudinary.com/ds2udm1nc/video/upload/q_auto,f_auto/v1777542938/futuristic_ultra_realistic_female_android_executive_secretary_human-like_android_elegant_and_precis_0x9zlg1mk8g25oluka91_1_ofn8ro.mp4">
-  </video>
+  <div class="title">
+    TARS-1<br>BUSINESS AI
+  </div>
 
-  <div class="overlay">
-    <div class="scan"></div>
-    <div class="glitch" id="glitch"></div>
-    <div class="text" id="status">SYSTEM INITIALIZING</div>
+  <div class="card">
+
+    <!-- 🔥 TU VIDEO -->
+    <video autoplay muted loop playsinline>
+      <source src="https://res.cloudinary.com/ds2udm1nc/video/upload/q_auto,f_auto/v1777542938/futuristic_ultra_realistic_female_android_executive_secretary_human-like_android_elegant_and_precis_0x9zlg1mk8g25oluka91_1_ofn8ro.mp4">
+    </video>
+
+    <!-- HUD -->
+    <div class="hud">
+      CPU: 15%<br>
+      DATA STREAMS: 0<br>
+      CONFIDENCE: 94%
+    </div>
+
+  </div>
+
+  <div class="panel">
+    ● FASE 1: CAPTURA DE DATOS
   </div>
 
 </div>
-
-<script>
-// ELEMENTOS
-const status = document.getElementById("status");
-const glitch = document.getElementById("glitch");
-const container = document.getElementById("container");
-
-// AUDIO ENGINE (sin archivos)
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-// beep futurista
-function playBeep() {
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-
-  osc.type = "sine";
-  osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-
-  gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
-
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-
-  osc.start();
-  osc.stop(audioCtx.currentTime + 0.2);
-}
-
-// hum ambiente
-let humOsc, humGain;
-
-function startHum() {
-  humOsc = audioCtx.createOscillator();
-  humGain = audioCtx.createGain();
-
-  humOsc.type = "sawtooth";
-  humOsc.frequency.setValueAtTime(60, audioCtx.currentTime);
-
-  humGain.gain.setValueAtTime(0.03, audioCtx.currentTime);
-
-  humOsc.connect(humGain);
-  humGain.connect(audioCtx.destination);
-
-  humOsc.start();
-}
-
-// VOZ IA
-function speak(text) {
-  const msg = new SpeechSynthesisUtterance(text);
-
-  msg.rate = 0.9;
-  msg.pitch = 0.7;
-
-  // voz más robótica si existe
-  const voices = speechSynthesis.getVoices();
-  const voice = voices.find(v => v.name.includes("Google") || v.name.includes("Microsoft"));
-  if (voice) msg.voice = voice;
-
-  speechSynthesis.speak(msg);
-}
-
-// MENSAJES
-const mensajes = [
-  "EXECUTIVE MODE ACTIVE",
-  "PROCESSING REQUEST",
-  "AWAITING COMMAND",
-  "ANALYZING DATA",
-  "SYSTEM READY"
-];
-
-const frases = [
-  "Awaiting your command",
-  "Task acknowledged",
-  "Processing data",
-  "System ready",
-  "How may I assist you"
-];
-
-// ACTIVACIÓN (necesaria para audio)
-container.addEventListener("click", () => {
-  audioCtx.resume();
-  startHum();
-
-  speak("Voice interface activated");
-  status.textContent = "VOICE INTERFACE ACTIVATED";
-});
-
-// LOOP NARRATIVO
-let contador = 0;
-
-setInterval(() => {
-
-  contador++;
-
-  // glitch visual
-  glitch.classList.add("active");
-  setTimeout(() => glitch.classList.remove("active"), 200);
-
-  // cambiar texto
-  const random = Math.floor(Math.random() * mensajes.length);
-  status.textContent = mensajes[random];
-
-  // beep
-  playBeep();
-
-  // cada 3 ciclos habla
-  if (contador % 3 === 0) {
-    const frase = frases[Math.floor(Math.random() * frases.length)];
-    speak(frase);
-  }
-
-}, 6000);
-
-</script>
 
 </body>
 </html>
