@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>TARS</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --glow-cyan: #00e5ff;
+  --text-white: #ffffff;
+  --white-glow: rgba(255,255,255,0.9);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  background: #000;
+  overflow: hidden;
+  font-family: "Orbitron", monospace;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* VIDEO RESPONSIVE - CUERPO COMPLETO */
+.video-wrapper {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  filter: contrast(1.1) brightness(1.1) saturate(1.2);
+  animation: slowPan 80s ease-in-out infinite alternate;
+}
+
+/* MOVIMIENTO SUTIL SIN CORTAR CABEZA/PIES */
+@keyframes slowPan {
+  0% {
+    transform: scale(1.05) translate(0, 0);
+  }
+  100% {
+    transform: scale(1.05) translate(-1%, 0);
+  }
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.25) 100%);
+  pointer-events: none;
+}
+
+.scanlines {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0,0,0,0.15) 0px,
+    rgba(0,0,0,0.15) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  animation: scanMove 15s linear infinite;
+  mix-blend-mode: overlay;
+  opacity: 0.4;
+}
+
+@keyframes scanMove {
+  from { transform: translateY(0); }
+  to { transform: translateY(8px); }
+}
+
+.hud-lines {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hud-lines::before,
+.hud-lines::after {
+  content: '';
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--glow-cyan) 15%,
+    var(--glow-cyan) 85%,
+    transparent 100%
+  );
+  box-shadow: 0 0 15px var(--glow-cyan);
+}
+
+.hud-lines::before { top: 5vh; top: 5dvh; }
+.hud-lines::after { bottom: 5vh; bottom: 5dvh; }
+
+/* TEXTO CENTRADO RESPONSIVE */
+.text-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 95vw;
+  max-width: 1200px;
+  text-align: center;
+  z-index: 10;
+  padding: 0 20px;
+}
+
+/* TEXTO TYPEWRITER BLANCO */
+.subtitle {
+  font-family: "Orbitron", monospace;
+  font-size: clamp(14px, 3vw, 32px);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--text-white);
+  text-shadow:
+    0 0 20px var(--white-glow),
+    0 0 40px var(--white-glow),
+    0 0 80px rgba(255,255,255,0.5);
+  min-height: 1.8em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  position: relative;
+  padding-left: 1.2em;
+  line-height: 1.4;
+}
+
+/* PUNTITO BLANCO */
+.subtitle::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 0.5em;
+  height: 0.5em;
+  background: var(--text-white);
+  border-radius: 50%;
+  box-shadow: 0 0 20px var(--white-glow);
+  animation: dotBlink 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes dotBlink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+.cursor {
+  display: inline-block;
+  width: 0.5em;
+  height: 1em;
+  background: var(--text-white);
+  box-shadow: 0 0 15px var(--white-glow);
+  animation: blink 1s steps(2, start) infinite;
+  vertical-align: text-bottom;
+  margin-left: 0.15em;
+  flex-shrink: 0;
+}
+
+@keyframes blink {
+  to { visibility: hidden; }
+}
+
+.corners {
+  position: fixed;
+  inset: 3vh 2vw;
+  inset: 3dvh 2dvw;
+  pointer-events: none;
+  border: 1px solid rgba(0,229,255,0.15);
+}
+
+.corners::before,
+.corners::after {
+  content: '';
+  position: absolute;
+  width: clamp(20px, 5vw, 50px);
+  height: clamp(20px, 5vw, 50px);
+  border: 2px solid var(--glow-cyan);
+}
+
+.corners::before {
+  top: -2px;
+  left: -2px;
+  border-right: none;
+  border-bottom: none;
+  box-shadow: -3px -3px 20px var(--glow-cyan);
+}
+
+.corners::after {
+  bottom: -2px;
+  right: -2px;
+  border-left: none;
+  border-top: none;
+  box-shadow: 3px 3px 20px var(--glow-cyan);
+}
+
+.glitch {
+  position: fixed;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.glitch.active {
+  animation: glitchFlash 0.3s steps(4, end);
+  opacity: 1;
+}
+
+@keyframes glitchFlash {
+  0% { transform: translate(0); background: rgba(255,255,255,0.3); }
+  25% { transform: translate(-5px, 3px); background: rgba(255,0,0,0.2); }
+  50% { transform: translate(5px, -3px); background: rgba(0,255,0,0.2); }
+  75% { transform: translate(-3px, 2px); background: rgba(0,0,255,0.2); }
+  100% { transform: translate(0); }
+}
+
+.prompt {
+  position: fixed;
+  bottom: 8vh;
+  bottom: 8dvh;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--text-white);
+  font-size: clamp(10px, 1.8vw, 16px);
+  letter-spacing: 0.35em;
+  animation: pulse 2.5s ease-in-out infinite;
+  text-shadow: 0 0 15px var(--white-glow);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.prompt.hide { display: none; }
+
+/* MOBILE ESPECÍFICO - CUERPO COMPLETO */
+@media (max-width: 768px) {
+  video {
+    object-position: center 45%;
+  }
+
+.subtitle {
+    letter-spacing: 0.08em;
+    font-size: clamp(13px, 3.8vw, 22px);
+    padding-left: 1em;
+  }
+
+.hud-lines::before,.hud-lines::after {
+    left: 5%;
+    right: 5%;
+  }
+
+.text-container {
+    width: 90vw;
+  }
+}
+
+/* LANDSCAPE MOBILE */
+@media (max-height: 500px) and (orientation: landscape) {
+ .hud-lines::before { top: 3vh; }
+ .hud-lines::after { bottom: 3vh; }
+ .prompt { bottom: 5vh; }
+ .subtitle { font-size: clamp(12px, 2.5vw, 20px); }
+}
+</style>
+</head>
+
+<body>
+
+<div class="video-wrapper">
+  <video autoplay muted loop playsinline id="bgVideo" preload="auto">
+    <source src="https://res.cloudinary.com/ds2udm1nc/video/upload/q_auto,f_auto/v1777542938/futuristic_ultra_realistic_female_android_executive_secretary_human-like_android_elegant_and_precis_0x9zlg1mk8g25oluka91_1_ofn8ro.mp4" type="video/mp4">
+  </video>
+</div>
+
+<div class="overlay"></div>
+<div class="scanlines"></div>
+<div class="hud-lines"></div>
+<div class="corners"></div>
+<div class="glitch" id="glitch"></div>
+
+<div class="text-container">
+  <div class="subtitle">
+    <span id="typed"></span><span class="cursor"></span>
+  </div>
+</div>
+
+<div class="prompt" id="prompt">TOCAR PARA INICIAR</div>
+
+<script>
+const typed = document.getElementById("typed");
+const glitch = document.getElementById("glitch");
+const prompt = document.getElementById("prompt");
+const video = document.getElementById("bgVideo");
+
+const FRASES = [
+  "INICIALIZANDO SISTEMA...",
+  "FASE 1: CAPTURA DE DATOS",
+  "SINCRONIZANDO NEURONAS",
+  "NIVEL DE HUMOR: 75%",
+  "NIVEL DE SINCERIDAD: 90%",
+  "ESPERANDO INSTRUCCIONES..."
+];
+
+let ctx = null;
+let humOsc, humGain, humFilter;
+let isActive = false;
+let vozES = null;
+
+// VIDEO LENTO PERO SIN ZOOM AGRESIVO
+video.playbackRate = 0.4;
+
+// CARGAR VOCES
+function cargarVoces() {
+  return new Promise((resolve) => {
+    let voices = speechSynthesis.getVoices();
+    if (voices.length > 0) {
+      vozES = voices.find(v => v.lang === "es-ES" || v.lang === "es_MX" || v.lang.startsWith("es")) || voices[0];
+      resolve();
+    } else {
+      speechSynthesis.onvoiceschanged = () => {
+        voices = speechSynthesis.getVoices();
+        vozES = voices.find(v => v.lang === "es-ES" || v.lang === "es_MX" || v.lang.startsWith("es")) || voices[0];
+        resolve();
+      };
+    }
+  });
+}
+
+function escribir(texto, speed = 80) {
+  return new Promise(resolve => {
+    typed.textContent = "";
+    let i = 0;
+    const interval = setInterval(() => {
+      typed.textContent += texto[i];
+      i++;
+      if (i >= texto.length) {
+        clearInterval(interval);
+        resolve();
+      }
+    }, speed);
+  });
+}
+
+function initAudio() {
+  if (ctx) return;
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+  humOsc = ctx.createOscillator();
+  humGain = ctx.createGain();
+  humFilter = ctx.createBiquadFilter();
+
+  humOsc.type = "sawtooth";
+  humOsc.frequency.value = 40;
+
+  humFilter.type = "lowpass";
+  humFilter.frequency.value = 120;
+  humFilter.Q.value = 10;
+
+  humGain.gain.value = 0;
+
+  humOsc.connect(humFilter);
+  humFilter.connect(humGain);
+  humGain.connect(ctx.destination);
+  humOsc.start();
+
+  humGain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 3);
+}
+
+function glitchSound() {
+  if (!ctx) return;
+  const noise = ctx.createBufferSource();
+  const gain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+
+  const bufferSize = ctx.sampleRate * 0.25;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1;
+  }
+  noise.buffer = buffer;
+
+  filter.type = "bandpass";
+  filter.frequency.value = 500 + Math.random() * 800;
+  filter.Q.value = 20;
+
+  gain.gain.value = 0.12;
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+
+  noise.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  noise.start();
+}
+
+function hablar(texto) {
+  speechSynthesis.cancel();
+
+  const msg = new SpeechSynthesisUtterance(texto);
+  msg.rate = 0.7;
+  msg.pitch = 0.05;
+  msg.volume = 1;
+  msg.lang = "es-ES";
+
+  if (vozES) {
+    msg.voice = vozES;
+  }
+
+  msg.onstart = () => triggerGlitch();
+  msg.onerror = (e) => console.log("Speech error:", e);
+
+  speechSynthesis.speak(msg);
+}
+
+function triggerGlitch() {
+  glitch.classList.add("active");
+  glitchSound();
+  setTimeout(() => glitch.classList.remove("active"), 300);
+}
+
+async function iniciarTARS() {
+  if (isActive) return;
+  isActive = true;
+  prompt.classList.add("hide");
+
+  await cargarVoces();
+
+  if (ctx && ctx.state === 'suspended') {
+    await ctx.resume();
+  }
+
+  initAudio();
+  video.play().catch(e => console.log("Video error:", e));
+
+  for (let i = 0; i < FRASES.length; i++) {
+    hablar(FRASES[i]);
+    await escribir(FRASES[i], 90);
+    await new Promise(r => setTimeout(r, 2500));
+    if (i < FRASES.length - 1) {
+      await escribir("", 40);
+      await new Promise(r => setTimeout(r, 500));
+    }
+  }
+}
+
+function glitchLoop() {
+  const delay = 6000 + Math.random() * 6000;
+  setTimeout(() => {
+    if (isActive && Math.random() > 0.5) triggerGlitch();
+    glitchLoop();
+  }, delay);
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (!ctx ||!humGain) return;
+  if (document.hidden) {
+    humGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.3);
+    speechSynthesis.pause();
+  } else {
+    humGain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+    speechSynthesis.resume();
+  }
+});
+
+document.body.addEventListener("click", () => {
+  iniciarTARS();
+  glitchLoop();
+}, { once: true });
+
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space" &&!isActive) {
+    e.preventDefault();
+    iniciarTARS();
+    glitchLoop();
+  }
+});
+
+cargarVoces();
+</script>
+
+</body>
+</html>
