@@ -4,99 +4,60 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>TARS-1</title>
+<title>Lady TARS</title>
 
 <style>
 body {
   margin: 0;
-  background: #05080f;
-  font-family: sans-serif;
-  display: flex;
-  justify-content: center;
-}
-
-/* CONTENEDOR */
-.wrapper {
-  width: 100%;
-  max-width: 420px;
-  padding: 16px;
-  box-sizing: border-box;
-}
-
-/* TITULO */
-.title {
-  color: #dff;
-  font-size: clamp(24px, 6vw, 38px);
-  letter-spacing: 4px;
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-/* CARD */
-.card {
-  position: relative;
-  border-radius: 20px;
+  background: black;
   overflow: hidden;
-  border: 2px solid rgba(0,255,255,0.3);
-  box-shadow: 0 0 25px rgba(0,255,255,0.2);
 }
 
-/* VIDEO */
+/* VIDEO FULLSCREEN */
 video {
-  width: 100%;
-  height: auto;
-  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   object-fit: cover;
 }
 
 /* SCANLINES */
-.card::after {
-  content: "";
-  position: absolute;
+.scanlines {
+  position: fixed;
   inset: 0;
+  pointer-events: none;
   background: repeating-linear-gradient(
     to bottom,
-    rgba(255,255,255,0.06) 0px,
-    rgba(255,255,255,0.06) 1px,
+    rgba(255,255,255,0.05) 0px,
+    rgba(255,255,255,0.05) 1px,
     transparent 2px,
     transparent 4px
   );
-  pointer-events: none;
-  animation: scanMove 5s linear infinite;
+  animation: moveScan 6s linear infinite;
 }
 
-@keyframes scanMove {
+@keyframes moveScan {
   from { transform: translateY(0); }
-  to { transform: translateY(12px); }
+  to { transform: translateY(10px); }
 }
 
-/* HUD */
-.hud {
-  position: absolute;
-  bottom: 12px;
-  left: 12px;
-  background: rgba(0,0,0,0.6);
-  padding: 10px;
-  border-radius: 10px;
-  font-size: 12px;
-  color: #00ffe1;
-  backdrop-filter: blur(6px);
+/* GLITCH */
+.glitch {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,255,255,0.08);
+  opacity: 0;
+  pointer-events: none;
 }
 
-/* PANEL */
-.panel {
-  margin-top: 20px;
-  padding: 16px;
-  border-radius: 16px;
-  border: 1px solid rgba(0,255,255,0.2);
-  color: #0ff;
+.glitch.active {
+  animation: glitchFlash 0.15s;
 }
 
-/* RESPONSIVE EXTRA */
-@media (max-width: 400px) {
-  .wrapper {
-    padding: 10px;
-  }
+@keyframes glitchFlash {
+  50% { opacity: 1; }
 }
 </style>
 
@@ -104,33 +65,107 @@ video {
 
 <body>
 
-<div class="wrapper">
+<!-- VIDEO -->
+<video autoplay muted loop playsinline>
+  <source src="https://res.cloudinary.com/ds2udm1nc/video/upload/q_auto,f_auto/v1777542938/futuristic_ultra_realistic_female_android_executive_secretary_human-like_android_elegant_and_precis_0x9zlg1mk8g25oluka91_1_ofn8ro.mp4">
+</video>
 
-  <div class="title">
-    TARS-1<br>BUSINESS AI
-  </div>
+<!-- EFECTOS -->
+<div class="scanlines"></div>
+<div class="glitch" id="glitch"></div>
 
-  <div class="card">
+<script>
+// AUDIO ENGINE
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-    <!-- 🔥 TU VIDEO -->
-    <video autoplay muted loop playsinline>
-      <source src="https://res.cloudinary.com/ds2udm1nc/video/upload/q_auto,f_auto/v1777542938/futuristic_ultra_realistic_female_android_executive_secretary_human-like_android_elegant_and_precis_0x9zlg1mk8g25oluka91_1_ofn8ro.mp4">
-    </video>
+// HUM (ambiente)
+let humOsc, humGain;
 
-    <!-- HUD -->
-    <div class="hud">
-      CPU: 15%<br>
-      DATA STREAMS: 0<br>
-      CONFIDENCE: 94%
-    </div>
+function startHum() {
+  humOsc = audioCtx.createOscillator();
+  humGain = audioCtx.createGain();
 
-  </div>
+  humOsc.type = "sawtooth";
+  humOsc.frequency.setValueAtTime(55, audioCtx.currentTime);
 
-  <div class="panel">
-    ● FASE 1: CAPTURA DE DATOS
-  </div>
+  humGain.gain.setValueAtTime(0.03, audioCtx.currentTime);
 
-</div>
+  humOsc.connect(humGain);
+  humGain.connect(audioCtx.destination);
+
+  humOsc.start();
+}
+
+// BEEP futurista
+function beep() {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(900, audioCtx.currentTime);
+
+  gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.15);
+}
+
+// VOZ
+function speak(text) {
+  const msg = new SpeechSynthesisUtterance(text);
+  msg.rate = 0.9;
+  msg.pitch = 0.6;
+
+  const voices = speechSynthesis.getVoices();
+  const voice = voices.find(v => v.name.includes("Google") || v.name.includes("Microsoft"));
+  if (voice) msg.voice = voice;
+
+  speechSynthesis.speak(msg);
+}
+
+// ACTIVAR AUDIO (click obligatorio)
+document.body.addEventListener("click", () => {
+  audioCtx.resume();
+  startHum();
+  speak("System online");
+}, { once: true });
+
+// LOOP NARRATIVO
+const glitch = document.getElementById("glitch");
+
+const frases = [
+  "Awaiting command",
+  "Processing request",
+  "System active",
+  "Analyzing",
+  "Ready"
+];
+
+let contador = 0;
+
+setInterval(() => {
+
+  contador++;
+
+  // glitch
+  glitch.classList.add("active");
+  setTimeout(() => glitch.classList.remove("active"), 150);
+
+  // beep
+  beep();
+
+  // voz cada 3 ciclos
+  if (contador % 3 === 0) {
+    const frase = frases[Math.floor(Math.random() * frases.length)];
+    speak(frase);
+  }
+
+}, 6000);
+</script>
 
 </body>
 </html>
