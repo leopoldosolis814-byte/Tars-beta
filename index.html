@@ -2,24 +2,24 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Lady TARS</title>
+<title>TARS</title>
 
 <style>
-body {
+html, body {
   margin: 0;
+  padding: 0;
   background: black;
   overflow: hidden;
 }
 
-/* VIDEO FULLSCREEN */
+/* VIDEO FULLSCREEN REAL */
 video {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
@@ -35,15 +35,29 @@ video {
     transparent 2px,
     transparent 4px
   );
-  animation: moveScan 6s linear infinite;
+  animation: scanMove 6s linear infinite;
 }
 
-@keyframes moveScan {
+@keyframes scanMove {
   from { transform: translateY(0); }
-  to { transform: translateY(10px); }
+  to { transform: translateY(12px); }
 }
 
-/* GLITCH */
+/* TEXTO CYBERPUNK */
+.text {
+  position: fixed;
+  bottom: 5vh;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #00ffe1;
+  font-family: monospace;
+  font-size: clamp(14px, 3.5vw, 22px);
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px #00ffe1;
+  white-space: nowrap;
+}
+
+/* GLITCH FLASH */
 .glitch {
   position: fixed;
   inset: 0;
@@ -60,111 +74,89 @@ video {
   50% { opacity: 1; }
 }
 </style>
-
 </head>
 
 <body>
 
-<!-- VIDEO -->
 <video autoplay muted loop playsinline>
   <source src="https://res.cloudinary.com/ds2udm1nc/video/upload/q_auto,f_auto/v1777542938/futuristic_ultra_realistic_female_android_executive_secretary_human-like_android_elegant_and_precis_0x9zlg1mk8g25oluka91_1_ofn8ro.mp4">
 </video>
 
-<!-- EFECTOS -->
 <div class="scanlines"></div>
 <div class="glitch" id="glitch"></div>
+<div class="text" id="text"></div>
 
 <script>
-// AUDIO ENGINE
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const textEl = document.getElementById("text");
+const glitch = document.getElementById("glitch");
 
-// HUM (ambiente)
-let humOsc, humGain;
+const frase = "Hola... ¿cómo estás? Soy TARS, tu asistente.";
 
-function startHum() {
-  humOsc = audioCtx.createOscillator();
-  humGain = audioCtx.createGain();
-
-  humOsc.type = "sawtooth";
-  humOsc.frequency.setValueAtTime(55, audioCtx.currentTime);
-
-  humGain.gain.setValueAtTime(0.03, audioCtx.currentTime);
-
-  humOsc.connect(humGain);
-  humGain.connect(audioCtx.destination);
-
-  humOsc.start();
+// TYPEWRITER
+function escribir(texto, speed = 50) {
+  textEl.textContent = "";
+  let i = 0;
+  const interval = setInterval(() => {
+    textEl.textContent += texto[i];
+    i++;
+    if (i >= texto.length) clearInterval(interval);
+  }, speed);
 }
 
-// BEEP futurista
-function beep() {
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
+// AUDIO CONTEXT
+const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
-  osc.type = "sine";
-  osc.frequency.setValueAtTime(900, audioCtx.currentTime);
+// VOCODER SIMPLE (efecto robótico)
+function vozRobotica() {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
 
-  gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+  osc.type = "sawtooth";
+  osc.frequency.value = 110; // grave
 
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
+  filter.type = "bandpass";
+  filter.frequency.value = 800;
+
+  gain.gain.value = 0.05;
+
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
 
   osc.start();
-  osc.stop(audioCtx.currentTime + 0.15);
+  osc.stop(ctx.currentTime + 2);
 }
 
-// VOZ
-function speak(text) {
-  const msg = new SpeechSynthesisUtterance(text);
-  msg.rate = 0.9;
-  msg.pitch = 0.6;
+// VOZ TTS GRAVE
+function hablar(texto) {
+  const msg = new SpeechSynthesisUtterance(texto);
+  msg.rate = 0.85;
+  msg.pitch = 0.4; // más grave
 
   const voices = speechSynthesis.getVoices();
-  const voice = voices.find(v => v.name.includes("Google") || v.name.includes("Microsoft"));
+  const voice = voices.find(v => v.lang.includes("es"));
   if (voice) msg.voice = voice;
 
   speechSynthesis.speak(msg);
 }
 
-// ACTIVAR AUDIO (click obligatorio)
+// ACTIVACIÓN
 document.body.addEventListener("click", () => {
-  audioCtx.resume();
-  startHum();
-  speak("System online");
+  ctx.resume();
+
+  escribir(frase, 45);
+  hablar(frase);
+  vozRobotica();
+
 }, { once: true });
 
-// LOOP NARRATIVO
-const glitch = document.getElementById("glitch");
-
-const frases = [
-  "Awaiting command",
-  "Processing request",
-  "System active",
-  "Analyzing",
-  "Ready"
-];
-
-let contador = 0;
-
+// LOOP EFECTO
 setInterval(() => {
-
-  contador++;
-
-  // glitch
   glitch.classList.add("active");
   setTimeout(() => glitch.classList.remove("active"), 150);
-
-  // beep
-  beep();
-
-  // voz cada 3 ciclos
-  if (contador % 3 === 0) {
-    const frase = frases[Math.floor(Math.random() * frases.length)];
-    speak(frase);
-  }
-
 }, 6000);
+
 </script>
 
 </body>
